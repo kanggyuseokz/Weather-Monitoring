@@ -1,0 +1,44 @@
+const majorCities = [
+  // 수도권 (Seoul Capital Area)
+  { id: 'seoul', name: '서울', lon: 126.9779, lat: 37.5663, nx: 60, ny: 127, sidoName: '서울', stationName: '중구' },
+  { id: 'incheon', name: '인천', lon: 126.7052, lat: 37.4563, nx: 55, ny: 124, sidoName: '인천', stationName: '부평구' },
+  { id: 'suwon', name: '수원', lon: 127.0275, lat: 37.2636, nx: 61, ny: 120, sidoName: '경기', stationName: '인계동' },
+  { id: 'seongnam', name: '성남', lon: 127.1389, lat: 37.4208, nx: 62, ny: 123, sidoName: '경기', stationName: '수정구' },
+  { id: 'yongin', name: '용인', lon: 127.1775, lat: 37.241, nx: 62, ny: 119, sidoName: '경기', stationName: '김량장동' },
+  { id: 'goyang', name: '고양', lon: 126.795, lat: 37.658, nx: 57, ny: 127, sidoName: '경기', stationName: '마두동'},
+  { id: 'uijeongbu', name: '의정부', lon: 127.0336, lat: 37.738, nx: 61, ny: 129, sidoName: '경기', stationName: '의정부동' },
+
+  // 강원권 (Gangwon)
+  { id: 'chuncheon', name: '춘천', lon: 127.7298, lat: 37.8813, nx: 73, ny: 134, sidoName: '강원', stationName: '효자동' },
+  { id: 'wonju', name: '원주', lon: 127.945, lat: 37.342, nx: 76, ny: 122, sidoName: '강원', stationName: '명륜동' },
+  { id: 'gangneung', name: '강릉', lon: 128.876, lat: 37.752, nx: 92, ny: 131, sidoName: '강원', stationName: '옥천동'},
+  { id: 'sokcho', name: '속초', lon: 128.591, lat: 38.204, nx: 87, ny: 139, sidoName: '강원', stationName: '조양동' },
+
+  // 충청권 (Chungcheong)
+  { id: 'cheongju', name: '청주', lon: 127.4914, lat: 36.6425, nx: 69, ny: 107, sidoName: '충북', stationName: '사직동' },
+  { id: 'chungju', name: '충주', lon: 127.929, lat: 36.97, nx: 76, ny: 114, sidoName: '충북', stationName: '칠금동' },
+  { id: 'daejeon', name: '대전', lon: 127.3845, lat: 36.3504, nx: 67, ny: 100, sidoName: '대전', stationName: '유성구' },
+  { id: 'cheonan', name: '천안', lon: 127.148, lat: 36.815, nx: 62, ny: 112, sidoName: '충남', stationName: '성황동'},
+  { id: 'seosan', name: '서산', lon: 126.45, lat: 36.78, nx: 48, ny: 109, sidoName: '충남', stationName: '독곶리' },
+  
+  // 전라권 (Jeolla)
+  { id: 'jeonju', name: '전주', lon: 127.1477, lat: 35.8208, nx: 63, ny: 89, sidoName: '전북', stationName: '노송동' },
+  { id: 'gunsan', name: '군산', lon: 126.712, lat: 35.967, nx: 54, ny: 90, sidoName: '전북', stationName: '신흥동' },
+  { id: 'gwangju', name: '광주', lon: 126.8526, lat: 35.1595, nx: 58, ny: 74, sidoName: '광주', stationName: '서구' },
+  { id: 'mokpo', name: '목포', lon: 126.392, lat: 34.812, nx: 50, ny: 61, sidoName: '전남', stationName: '유달동'},
+  { id: 'yeosu', name: '여수', lon: 127.661, lat: 34.760, nx: 73, ny: 66, sidoName: '전남', stationName: '문수동' },
+  
+  // 경상권 (Gyeongsang)
+  { id: 'daegu', name: '대구', lon: 128.6014, lat: 35.8714, nx: 89, ny: 90, sidoName: '대구', stationName: '중구' },
+  { id: 'andong', name: '안동', lon: 128.729, lat: 36.568, nx: 91, ny: 106, sidoName: '경북', stationName: '옥동' },
+  { id: 'pohang', name: '포항', lon: 129.365, lat: 36.038, nx: 102, ny: 94, sidoName: '경북', stationName: '장흥동' },
+  { id: 'gumi', name: '구미', lon: 128.331, lat: 36.114, nx: 86, ny: 96, sidoName: '경북', stationName: '원평동' },
+  { id: 'busan', name: '부산', lon: 129.0756, lat: 35.1796, nx: 98, ny: 76, sidoName: '부산', stationName: '부산진구' },
+  { id: 'ulsan', name: '울산', lon: 129.3114, lat: 35.5384, nx: 102, ny: 84, sidoName: '울산', stationName: '남구' },
+  { id: 'changwon', name: '창원', lon: 128.681, lat: 35.228, nx: 90, ny: 77, sidoName: '경남', stationName: '중앙동' },
+  { id: 'jinju', name: '진주', lon: 128.083, lat: 35.18, nx: 81, ny: 75, sidoName: '경남', stationName: '상대동' },
+
+  // 제주권 (Jeju)
+  { id: 'jeju', name: '제주', lon: 126.5312, lat: 33.4996, nx: 52, ny: 38, sidoName: '제주', stationName: '이도동' },
+  { id: 'seogwipo', name: '서귀포', lon: 126.565, lat: 33.254, nx: 52, ny: 33, sidoName: '제주', stationName: '동홍동' },
+];
