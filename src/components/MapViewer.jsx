@@ -66,6 +66,7 @@ const MapViewer = () => {
   const viewerRef = useRef(null);
   const clickInfoDataSourceRef = useRef(new Cesium.CustomDataSource('clickInfoLayer'));
   const typhoonDataSourceRef = useRef(new Cesium.CustomDataSource('typhoonLayer'));
+  const baseWeatherLayerRef = useRef(new Cesium.CustomDataSource('baseWeatherLayer'));
 
   const [isTyphoonLayerActive, setIsTyphoonLayerActive] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -199,7 +200,12 @@ const MapViewer = () => {
           outlineWidth: 4,
           backgroundColor: new Cesium.Color(0.1, 0.1, 0.1, 0.7),
           showBackground: true,
-          pixelOffset: new Cesium.Cartesian2(0, -50),
+          // ↓ 깊이 테스트 끄기: 항상 화면 앞에 표시
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          // ↓ 땅이 아닌 화면상의 위치로 고정
+          heightReference: Cesium.HeightReference.NONE,
+          // ↓ 아이콘보다 위쪽에 띄우기
+          pixelOffset: new Cesium.Cartesian2(0, -80)
         }
       });
 
@@ -209,7 +215,7 @@ const MapViewer = () => {
   };
 
   const displayDefaultSkyIcons = async (date) => {
-    const ds = clickInfoDataSourceRef.current;
+    const ds = baseWeatherLayerRef.current;
     ds.entities.removeAll(); // 기존 엔티티가 있으면 초기화
     const dateStr = toApiDateString(date);
     const usePast = isPastDate(dateStr);
@@ -286,6 +292,7 @@ const MapViewer = () => {
       viewerRef.current = viewer;
       viewer.dataSources.add(clickInfoDataSourceRef.current);
       viewer.dataSources.add(typhoonDataSourceRef.current);
+      viewer.dataSources.add(baseWeatherLayerRef.current);
       viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(127.5, 36.0, 1500000) });
 
       const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -315,9 +322,78 @@ const MapViewer = () => {
 
   // 태풍 레이어 토글
   useEffect(() => {
-    typhoonDataSourceRef.current.show = isTyphoonLayerActive;
+    const ds = typhoonDataSourceRef.current;
+    ds.show = isTyphoonLayerActive;
+
     if (isTyphoonLayerActive) {
-      // getTyphoonInfo 및 렌더링 로직
+      (async () => {
+        // 1) 기존 엔티티 클리어
+        ds.entities.removeAll();
+
+        // 2) API 호출
+        const items = await getTyphoonInfo();
+        if (!items || items.length === 0) {
+          // 태풍 정보 없음 메시지
+          ds.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(127.5, 36.0, 700000),
+            label: {
+              text: '현재 발표된 태풍 정보가 없습니다.',
+              font: 'bold 18px sans-serif',
+              fillColor: Cesium.Color.WHITE,
+            }
+          });
+          return;
+        }
+
+        // 3) typSeq 별로 그룹핑
+        const grouped = items.reduce((acc, item) => {
+          const id = item.typSeq; 
+          if (!acc[id]) acc[id] = [];
+          acc[id].push(item);
+          return acc;
+        }, {});
+
+        // 4) 각 태풍 경로와 라벨 그리기
+        for (const seq in grouped) {
+          const path = grouped[seq]
+            .map(p => ({
+              lon: parseFloat(p.typLon),
+              lat: parseFloat(p.typLat),
+              name: p.typName
+            }))
+            .filter(p => !isNaN(p.lon) && !isNaN(p.lat));
+
+          if (path.length === 0) continue;
+
+          // 경로(polyline)
+          const coords = path.flatMap(p => [p.lon, p.lat]);
+          ds.entities.add({
+            polyline: {
+              positions: Cesium.Cartesian3.fromDegreesArray(coords),
+              width: 3,
+              material: Cesium.Color.RED,
+              clampToGround: true
+            }
+          });
+
+          // 마지막 지점에 라벨
+          const last = path[path.length - 1];
+          ds.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(last.lon, last.lat),
+            label: {
+              text: last.name,
+              font: 'bold 16px sans-serif',
+              fillColor: Cesium.Color.ORANGE,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              outlineWidth: 3,
+              pixelOffset: new Cesium.Cartesian2(0, -30)
+            }
+          });
+        }
+      })();
+    } else {
+      // 버튼 비활성화 시: 모두 삭제
+      typhoonDataSourceRef.current.entities.removeAll();
     }
   }, [isTyphoonLayerActive]);
 
