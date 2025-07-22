@@ -48,6 +48,15 @@ const majorCities = [
   { id: 'seogwipo', name: '서귀포', lon: 126.565, lat: 33.254, nx: 52, ny: 33, sidoName: '제주', stationName: '동홍동', stnId: 189 },
 ];
 
+// MapViewer.jsx 최상단(majorCities 선언 아래 등)
+const skyIconMap = {
+  맑음: '/sun.png',
+  구름: '/cloudy.png',
+  흐림: '/rainy.png'
+};
+// URL → HTMLImageElement 를 저장할 맵
+const skyIconImages = {};
+
 const toYYYYMMDD = date => {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -112,7 +121,7 @@ const MapViewer = () => {
           const maxT = weatherData.maxTa ?? 'N/A';
           tempText = `최저/최고 온도: ${minT}℃ / ${maxT}℃`;
           pinTemp = maxT;
-           // 전운량(avgTca)을 이용한 하늘 상태
+          // 전운량(avgTca)을 이용한 하늘 상태
         const tca = parseFloat(weatherData.avgTca);
         if (!isNaN(tca)) {
           if (tca <= 2) {
@@ -125,7 +134,7 @@ const MapViewer = () => {
         } else {
           skyText = '정보없음';
         }
-          // skyText = weatherData.iscs?.replace(/-|{.+?}|강도\d/g, '').trim() || '맑음';
+
         } else {
           const todayStr = toYYYYMMDD(new Date());
           const targetStr = toYYYYMMDD(date);
@@ -153,7 +162,7 @@ const MapViewer = () => {
       // 핀 아이콘
       let iconUrl = '/pin-icon-normal.png';
       const num = parseInt(pinTemp, 10);
-      if (!isNaN(num) && num >= 25) iconUrl = '/pin-icon-hot.png';
+      if (!isNaN(num) && num >= 30) iconUrl = '/pin-icon-hot.png';
 
       ds.entities.add({
         position: cartesian,
@@ -178,10 +187,9 @@ const MapViewer = () => {
       clickInfoDataSourceRef.current.entities.add({
         position: cartesian,
         billboard: {
-          image: skyIconUrl,
+          image: skyIconImages[skyIconUrl],
           width: 32,
           height: 32,
-          // 핀보다 살짝 위에 뜨도록 오프셋을 조정
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           disableDepthTestDistance: undefined, 
           pixelOffset: new Cesium.Cartesian2(0, -50)
@@ -275,7 +283,7 @@ const MapViewer = () => {
       ds.entities.add({
         position: Cesium.Cartesian3.fromDegrees(city.lon, city.lat),
         billboard: {
-          image: iconUrl,
+          image: skyIconImages[iconUrl],
           width: 32,
           height: 32,
           // 아이콘의 중심이 지점 좌표에 정확히 오도록
@@ -293,7 +301,15 @@ const MapViewer = () => {
 
   // Cesium 뷰어 초기화
   useEffect(() => {
+    const preloadIcons = async () => {
+    // Cesium이 완전히 로드된 뒤에 Resource 로드
+    for (const url of Object.values(skyIconMap)) {
+      const img = await Cesium.Resource.createIfNeeded(url).fetchImage();
+      skyIconImages[url] = img;
+    }
+  };
     const init = async () => {
+      await preloadIcons();
       const viewer = new Cesium.Viewer('cesiumContainer', {
         selectionIndicator: false,  
         infoBox: false,
@@ -326,7 +342,10 @@ const MapViewer = () => {
   // 클릭 or 날짜 변경 시 정보 갱신
   useEffect(() => {
     if (lastClickedInfo) {
-      fetchAndDisplayInfo(lastClickedInfo.cartesian, lastClickedInfo.city, selectedDate);
+      fetchAndDisplayInfo(
+        lastClickedInfo.cartesian, 
+        lastClickedInfo.city, 
+        selectedDate);
     }
   }, [lastClickedInfo, selectedDate]);
 
@@ -344,7 +363,6 @@ const MapViewer = () => {
         const items = await getTyphoonInfo();
         if (!items || items.length === 0) {
           console.log("현재 발표된 태풍 정보 없음.")
-          // 태풍 정보 없음 메시지
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(127.5, 36.0, 700000),
             label: {
