@@ -86,7 +86,8 @@ const MapViewer = () => {
           outlineWidth: 4,
           pixelOffset: new Cesium.Cartesian2(0, -50),
           backgroundColor: new Cesium.Color(0.1, 0.1, 0.1, 0.7),
-          showBackground: true
+          showBackground: true,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
         }
       });
 
@@ -156,7 +157,13 @@ const MapViewer = () => {
 
       ds.entities.add({
         position: cartesian,
-        billboard: { image: iconUrl, width: 32, height: 32 }
+        billboard: { image: iconUrl, 
+          width: 32, 
+          height: 32, 
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM 
+        }
       });
 
       // 1) skyText 에 따라 아이콘 맵핑
@@ -176,6 +183,7 @@ const MapViewer = () => {
           height: 32,
           // 핀보다 살짝 위에 뜨도록 오프셋을 조정
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          disableDepthTestDistance: undefined, 
           pixelOffset: new Cesium.Cartesian2(0, -50)
         }
       });
@@ -287,6 +295,8 @@ const MapViewer = () => {
   useEffect(() => {
     const init = async () => {
       const viewer = new Cesium.Viewer('cesiumContainer', {
+        selectionIndicator: false,  
+        infoBox: false,
         terrainProvider: await Cesium.createWorldTerrainAsync()
       });
       viewerRef.current = viewer;
@@ -333,6 +343,7 @@ const MapViewer = () => {
         // 2) API 호출
         const items = await getTyphoonInfo();
         if (!items || items.length === 0) {
+          console.log("현재 발표된 태풍 정보 없음.")
           // 태풍 정보 없음 메시지
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(127.5, 36.0, 700000),
